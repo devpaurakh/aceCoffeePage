@@ -1,0 +1,173 @@
+﻿@page "/order/{CoffeeName}/{CoffeePrice}"
+@using AceCoffeepage.Objects.Services
+@using AceCoffeepage.Objects.Models
+
+<body>
+    <form class="row g-3" @onsubmit="CoffeeOrder">
+        <div class="container">
+            <h1>Order Coffee</h1>
+            <div class="coffee-details">
+
+                <label for="coffeeName">Coffee Name:</label>
+                <input id="coffeeName" class="form-control" readonly @bind="CoffeeName" />
+
+                <label for="coffeePrice">Coffee Price:</label>
+                <input id="coffeePrice" class="form-control price-input" readonly @bind="ParseCoffeePrice" />
+                <br />
+
+                <div class="add">
+                    <div class="add-in-input">
+                        <label for="add">Add in flavors</label>
+                        <div class="add-in-input">
+                            <select id="add-ins" class="form-select" @onchange="(args) => CalculateTotalCoffeePrice(args)">
+                                @foreach (var addIn in listOfAddIns)
+                                {
+                                    <option value="@addIn.AddPrice">@($"{addIn.AddName} - Rs {addIn.AddPrice}")</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <label for="customerNumber">Customer Number:</label>
+                <input id="customerNumber" class="form-control" @bind="CustomerNumber" /><br />
+
+                <label for="sugar">Total Price:</label>
+                <div class="price-display">Rs.@TotalPrice</div><br />
+
+                <button class="btn btn-primary" type="submit">Confirm</button>
+
+            </div><br />
+            @if (!string.IsNullOrEmpty(message))
+            {
+                <div class="alert alert-success" role="alert">
+                    @message
+                </div>
+            }
+        </div>
+    </form>
+</body>
+
+@code {
+    [Parameter]
+    public string CoffeeName { get; set; }
+
+    [Parameter]
+    public string CoffeePrice { get; set; }
+
+    private string AddFlavorName { get; set; }
+
+    private double AddFlavorPrice { get; set; }
+
+    public string CustomerNumber { get; set; }
+
+    public double ParseCoffeePrice { get; set; }
+
+    public double TotalPrice { get; set; }
+
+    private List<CoffeesAddIns> listOfAddIns;
+
+    private CoffeesAddIns addInsModel = new();
+
+    private string message = "";
+
+    protected override void OnInitialized()
+    {
+        try
+        {
+            listOfAddIns = AddInsService.GetAllAddIn();
+            if (double.TryParse(CoffeePrice, out double parsedPrice))
+            {
+                ParseCoffeePrice = parsedPrice;
+            }
+            else
+            {
+                ParseCoffeePrice = 0;
+            }
+            // Initial calculation
+            TotalPrice = ParseCoffeePrice;
+        }
+        catch (Exception ex)
+        {
+            listOfAddIns = new List<CoffeesAddIns>();
+            Console.WriteLine($"Error in OnInitialized: {ex.Message}");
+        }
+    }
+
+    private void CalculateTotalCoffeePrice(ChangeEventArgs e)
+    {
+        if (double.TryParse(e.Value.ToString(), out double addInPrice))
+        {
+            // Assuming listOfAddIns contains CoffeeAddIn objects with AddName and AddPrice properties
+            var selectedAddIn = listOfAddIns.FirstOrDefault(addIn => addIn.AddPrice.ToString() == e.Value.ToString());
+
+            if (selectedAddIn != null)
+            {
+                AddFlavorName = selectedAddIn.AddName;
+                AddFlavorPrice = selectedAddIn.AddPrice;
+                TotalPrice = ParseCoffeePrice + AddFlavorPrice;
+            }
+        }
+    }
+
+    private void CoffeeOrder()
+    {
+        double price;
+        if (double.TryParse(CoffeePrice, out price))
+        {
+            var response = OrderServices.CreateNewOrder(CoffeeName, price, AddFlavorName, AddFlavorPrice, CustomerNumber, TotalPrice);
+            if (response == "success")
+            {
+                message = $"{CoffeeName} order successfully";
+            }
+            else
+            {
+                message = response;
+            }
+        }
+        else
+        {
+            message = "The price in not string";
+        }
+    }
+}
+
+
+<style>
+    .container {
+        margin: 20px auto;
+        max-width: 600px;
+        padding: 0 20px;
+    }
+
+    .coffee-details {
+        margin-bottom: 20px;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 8px;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+
+    .price-input {
+        color: #333;
+        font-weight: bold;
+    }
+
+    .price-display {
+        margin-top: 10px;
+        padding: 8px;
+        background-color: #f0f0f0;
+        font-weight: bold;
+    }
+</style>

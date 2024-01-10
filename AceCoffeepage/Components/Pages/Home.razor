@@ -1,0 +1,372 @@
+﻿@page "/home"
+@inject NavigationManager NavManager
+@using AceCoffeepage.Objects.Services
+@using AceCoffeepage.Objects.Enumeration
+@using AceCoffeepage.Objects.Models
+
+<div class="container">
+    <h1>Add New Coffee and Add Ins</h1>
+
+    @if (IsUpdateCoffee)
+    {
+        <div class="add-coffee-form">
+            <label for="coffeeName">Coffee Name</label>
+            <input id="coffeeName" class="form-control" readonly @bind="coffeeModel.CoffeeName" />
+
+            <label for="coffeePrice">Coffee Price</label>
+            <input id="coffeePrice" class="form-control" @bind="coffeeModel.CoffeePrice" />
+
+            <button class="btn btn-primary" @onclick="UpdateCoffee">Save</button>
+            <button class="btn btn-primary" @onclick="UpdateCancel">Cancel</button>
+        </div>
+
+        <br />
+    }
+
+    @if (IsUpdateFlavor)
+    {
+        <div class="add-coffee-form">
+            <label for="coffeeName">Coffee Flavor Name</label>
+            <input id="coffeeName" class="form-control" readonly @bind="flavorAddInModel.AddName" />
+
+            <label for="coffeePrice">Coffee Flavor Price</label>
+            <input id="coffeePrice" class="form-control" @bind="flavorAddInModel.AddPrice" />
+
+            <button class="btn btn-primary" @onclick="UpdateFlavor">Save</button>
+            <button class="btn btn-primary" @onclick="UpdateCancel">Cancel</button>
+        </div>
+
+        <br />
+    }
+
+    @if (!string.IsNullOrEmpty(message))
+    {
+        <div class="alert alert-success" role="alert">
+            @message
+        </div>
+    }
+    <br />
+
+
+    <div>
+        <h3 for="coffeeName">Types of Coffees</h3>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Price</th>
+                    <th>Order</th>
+
+                    @if (UserService.CurrentUser.StaffRoles == StaffRoles.Admin)
+                    {
+                        <th>Price Update</th>
+                        <th>Delete</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var coffee in listOfCoffee)
+                {
+                    <tr>
+                        <td>@coffee.CoffeeName</td>
+                        <td>@coffee.CoffeePrice</td>
+                        <td>
+                            <button class="btn btn-primary" @onclick="() => orderPage(coffee)">Order</button>
+                        </td>
+
+                        @if (UserService.CurrentUser.StaffRoles == StaffRoles.Admin)
+                        {
+                            <td>
+                                <button class="btn btn-warning" @onclick="() => getEditCoffee(coffee)">Update</button>
+                            </td>
+                            <td>
+                                <button class="btn btn-danger" @onclick="() => deleteCoffee(coffee)">Delete</button>
+                            </td>
+                        }
+                    </tr>
+                }
+
+            </tbody>
+        </table>
+    </div><br />
+
+    <div>
+        <h3 for="coffeeName">Types of Add-In Flavor</h3>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Coffee Flavor Name</th>
+                    <th>Coffee Flavor Price</th>
+                    @if (UserService.CurrentUser.StaffRoles == StaffRoles.Admin)
+                    {
+                        <th>Price Update</th>
+                        <th>Delete</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var flavor in listOfLavor)
+                {
+                    @if (flavor.AddPrice > 0)
+                    {
+                        <tr>
+                            <td>@flavor.AddName</td>
+                            <td>@flavor.AddPrice</td>
+                            @if (UserService.CurrentUser.StaffRoles == StaffRoles.Admin)
+                            {
+                                <td>
+                                    <button class="btn btn-warning" @onclick="() => getEditAddInFlavor(flavor)">Update</button>
+                                </td>
+                                <td>
+                                    <button class="btn btn-danger" @onclick="() => deleteFlavor(flavor)">Delete</button>
+                                </td>
+                            }
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div><br />
+</div>
+
+@code {
+    // No need to initialize here, as it's initialized in the OnInitialized method
+    private bool IsUpdateCoffee = false;
+    private bool IsUpdateFlavor = false;
+    private string message = "";
+
+    // coffee model object
+    private List<Coffees> listOfCoffee;
+    private Coffees coffeeModel = new Coffees();
+
+    // add in flavor object
+    private List<CoffeesAddIns> listOfLavor;
+    private CoffeesAddIns flavorAddInModel = new();
+
+    // Lifecycle method to initialize data
+    protected override void OnInitialized()
+    {
+        try
+        {
+            listOfCoffee = CoffeeServices.GetAllCoffee();
+            listOfLavor = AddInsService.GetAllAddIn();
+        }
+        catch (Exception ex)
+        {
+            listOfCoffee = new List<Coffees>();
+            listOfLavor = new List<CoffeesAddIns>();
+            message = $"Error in OnInitialized: {ex.Message}";
+            ClearMessage();
+        }
+    }
+
+    // Methods for handling coffee operations
+    private void getEditCoffee(Coffees coffee)
+    {
+        try
+        {
+            IsUpdateFlavor = false;
+            IsUpdateCoffee = true;
+            coffeeModel.CoffeeName = coffee.CoffeeName;
+            coffeeModel.CoffeePrice = coffee.CoffeePrice;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            message = $"Error in editCoffee: {ex.Message}";
+        }
+    }
+
+    private void UpdateCoffee()
+    {
+        try
+        {
+            IsUpdateCoffee = false;
+            var coffeeResponse = CoffeeServices.UpdateCoffee(coffeeModel.CoffeeName, coffeeModel.CoffeePrice);
+            if (coffeeResponse == "success")
+            {
+                RefreshCoffeeList();
+                coffeeModel.CoffeeName = "";
+                coffeeModel.CoffeePrice = 0;
+                message = $"{coffeeModel.CoffeeName} Coffee's price uspdate successfuly";
+            }
+            else
+            {
+                message = coffeeResponse;
+            }
+        }
+        catch (Exception ex)
+        {
+            message = $"Error in addCoffee: {ex.Message}";
+        }
+        ClearMessage();
+    }
+
+    // update cancel
+    private void UpdateCancel()
+    {
+        IsUpdateCoffee = false;
+    }
+
+    // delete coffee
+    private void deleteCoffee(Coffees coffee)
+    {
+        try
+        {
+            CoffeeServices.DeleteCoffee(coffee.CoffeeName);
+            RefreshCoffeeList();
+        }
+        catch (Exception ex)
+        {
+            message = $"Error in delete coffee: {ex.Message}";
+        }
+    }
+
+    private void RefreshCoffeeList()
+    {
+        try
+        {
+            listOfCoffee = CoffeeServices.GetAllCoffee();
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            message = $"Error in RefreshCoffeeList: {ex.Message}";
+        }
+        ClearMessage();
+    }
+
+
+    @*
+     this is the flavor transaction
+    *@
+    private void getEditAddInFlavor(CoffeesAddIns addInFlavor)
+    {
+        try
+        {
+            IsUpdateCoffee = false;
+            IsUpdateFlavor = true;
+            flavorAddInModel.AddName = addInFlavor.AddName;
+            flavorAddInModel.AddPrice = addInFlavor.AddPrice;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            message = $"Error in editCoffee: {ex.Message}";
+        }
+        ClearMessage();
+    }
+
+    private void UpdateFlavor()
+    {
+        IsUpdateFlavor = false;
+        var response = AddInsService.UpdateAddInFlavor(flavorAddInModel.AddName, flavorAddInModel.AddPrice);
+        if (response == null)
+        {
+            RefreshCoffeeAddIn();
+            flavorAddInModel.AddName = "";
+            flavorAddInModel.AddPrice = 0;
+            message = $"{coffeeModel.CoffeeName} flavor's price uspdate successfuly";
+        }
+        else
+        {
+            message = response;
+        }
+
+        ClearMessage();
+    }
+
+    private void deleteFlavor(CoffeesAddIns flavor)
+    {
+        try
+        {
+            AddInsService.DeleteAddIn(flavor.AddName);
+            RefreshCoffeeAddIn();
+            message = $"{flavor.AddName} flavor is deleted.";
+        }
+        catch (Exception ex)
+        {
+            message = $"Error in delete add-in flavor: {ex.Message}";
+        }
+        ClearMessage();
+    }
+
+    private void RefreshCoffeeAddIn()
+    {
+        try
+        {
+            listOfLavor = AddInsService.GetAllAddIn();
+        }
+        catch (Exception ex)
+        {
+            message = $"Error in RefreshCoffeeAddIn: {ex.Message}";
+        }
+        ClearMessage();
+    }
+
+    private async void ClearMessage()
+    {
+        await Task.Delay(1000); // Wait for 1 second
+        message = "";
+    }
+
+    // navigate the order page
+    private void orderPage(Coffees coffee)
+    {
+        if (coffee != null)
+        {
+            // Encode the coffee name and price to pass them through the URL
+            string encodedCoffeeName = Uri.EscapeDataString(coffee.CoffeeName);
+            string encodedCoffeePrice = Uri.EscapeDataString(coffee.CoffeePrice.ToString()); // Convert price to string
+                                                                                             // Navigate to the order page with coffee name and price in the URL
+            NavManager.NavigateTo($"/order/{encodedCoffeeName}/{encodedCoffeePrice}");
+        }
+    }
+}
+
+<style>
+    .container {
+        margin: 20px auto;
+        max-width: 800px;
+        padding: 0 20px;
+    }
+
+    .add-coffee-form {
+        margin-bottom: 20px;
+    }
+
+        .add-coffee-form label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .add-coffee-form input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .table th, .table td {
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+
+        .table th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+            text-align: left;
+        }
+
+    .btn {
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+</style>

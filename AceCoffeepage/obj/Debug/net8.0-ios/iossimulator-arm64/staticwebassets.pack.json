@@ -1,0 +1,45 @@
+{
+  "Files": [
+    {
+      "Id": "C:\\Users\\ace\\source\\repos\\AceCoffeepage\\AceCoffeepage\\obj\\Debug\\net8.0-ios\\iossimulator-arm64\\scopedcss\\bundle\\AceCoffeepage.styles.css",
+      "PackagePath": "staticwebassets\\AceCoffeepage.styles.css"
+    },
+    {
+      "Id": "C:\\Users\\ace\\source\\repos\\AceCoffeepage\\AceCoffeepage\\wwwroot\\css\\app.css",
+      "PackagePath": "staticwebassets\\css\\app.css"
+    },
+    {
+      "Id": "C:\\Users\\ace\\source\\repos\\AceCoffeepage\\AceCoffeepage\\wwwroot\\css\\bootstrap\\bootstrap.min.css",
+      "PackagePath": "staticwebassets\\css\\bootstrap\\bootstrap.min.css"
+    },
+    {
+      "Id": "C:\\Users\\ace\\source\\repos\\AceCoffeepage\\AceCoffeepage\\wwwroot\\css\\bootstrap\\bootstrap.min.css.map",
+      "PackagePath": "staticwebassets\\css\\bootstrap\\bootstrap.min.css.map"
+    },
+    {
+      "Id": "C:\\Users\\ace\\source\\repos\\AceCoffeepage\\AceCoffeepage\\wwwroot\\favicon.png",
+      "PackagePath": "staticwebassets\\favicon.png"
+    },
+    {
+      "Id": "C:\\Users\\ace\\source\\repos\\AceCoffeepage\\AceCoffeepage\\wwwroot\\index.html",
+      "PackagePath": "staticwebassets\\index.html"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0-ios\\iossimulator-arm64\\staticwebassets\\msbuild.AceCoffeepage.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0-ios\\iossimulator-arm64\\staticwebassets\\msbuild.build.AceCoffeepage.props",
+      "PackagePath": "build\\AceCoffeepage.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0-ios\\iossimulator-arm64\\staticwebassets\\msbuild.buildMultiTargeting.AceCoffeepage.props",
+      "PackagePath": "buildMultiTargeting\\AceCoffeepage.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0-ios\\iossimulator-arm64\\staticwebassets\\msbuild.buildTransitive.AceCoffeepage.props",
+      "PackagePath": "buildTransitive\\AceCoffeepage.props"
+    }
+  ],
+  "ElementsToRemove": []
+}

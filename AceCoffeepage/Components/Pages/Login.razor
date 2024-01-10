@@ -1,0 +1,85 @@
+﻿@page "/login"
+@inject NavigationManager NavManager
+@using AceCoffeepage.Objects.Services
+@using AceCoffeepage.Objects.Enumeration
+@using AceCoffeepage.Objects.Models
+@using AceCoffeepage.Components.Layout
+@layout EmptyLayout
+
+<body>
+    <form class="row g-3" @onsubmit="LoginHandler">
+        <div class="login-container d-flex align-items-center justify-content-center vh-100">
+            <div class="card shadow-lg p-3 mb-5 bg-white rounded">
+                <div class="card-body">
+                    <img src="../Resources/Images/logo.png" alt="Ace's Coffee Shop Logo" class="img-fluid mb-4">
+                    <h1 class="card-title text-center mb-5">Ace's Coffee Shop</h1>
+                    <div class="form-group">
+                        <label class="form-label">Role</label>
+                        <select class="form-select" id="roleSelect" @bind="staffRoles">
+                            @foreach (var staffRoles in Enum.GetValues(typeof(AceCoffeepage.Objects.Enumeration.StaffRoles)))
+                            {
+                                <option value="@staffRoles">@staffRoles</option>
+                            }
+                        </select><br />
+
+                        <label class="form-label">Password</label>
+                        <input class="form-control" @bind="password" /> <br />
+
+                        <div class="sidebar align-content-center">
+                            <button type="submit" class="btn btn-primary btn-lg btn-lg w-100" onclick="@LoginHandler">Log In</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+    <style>
+        body{
+           background-color:#ece0d1;
+
+        }
+    </style>
+</body>
+
+@code {
+    private bool showDefaultCredentials { get; set; }
+    private StaffRoles staffRoles { get; set; }
+    private string password { get; set; }
+    private string errorMessage = "";
+
+    protected override void OnInitialized()
+    {
+        try
+        {
+            password = UserService.Password;
+            staffRoles = StaffRoles.Admin;
+            var user = UserService.Login(staffRoles, password);
+            showDefaultCredentials = user.HasInitialPassword;
+        }
+        catch
+        {
+            errorMessage = "User is not available!";
+        }
+        errorMessage = "";
+    }
+
+    private void LoginHandler()
+    {
+        try
+        {
+            errorMessage = "";
+            Users user;
+            UserService.Login(staffRoles, password);
+            NavManager.NavigateTo(UserService.CurrentUser.HasInitialPassword ? "/change-password" : "/");
+
+            if (UserService.CurrentUser != null)
+            {
+                errorMessage = "user exists";
+            }
+        }
+        catch (Exception e)
+        {
+            errorMessage = e.Message;
+        }
+    }
+}
